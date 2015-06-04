@@ -58,14 +58,11 @@ function fish_prompt
   set -l exit_code $status
 
   set -l gray (set_color 666)
-  set -l cyan (set_color cyan)
   set -l red (set_color red)
   set -l normal (set_color normal)
   set -l yellow (set_color ffcc00)
   set -l orange (set_color ffb300)
   set -l green (set_color green)
-  set -l pink (set_color ff99ff)
-  set -l dark_pink (set_color cc99ff)
 
   set_color -o 666
   printf '['
