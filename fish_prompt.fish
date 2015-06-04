@@ -20,6 +20,12 @@ function _prompt_virtualfish -a sep_color -a venv_color -d "Display activated vi
   echo -n -s $sep_color '|' $venv_color (basename "$VIRTUAL_ENV")
 end
 
+function _prompt_whoami -a sep_color -a whoami_color -d "Display user@host if on a SSH session"
+  if set -q SSH_TTY
+    echo -n -s $whoami_color (whoami)@(hostname) $sep_color '|'
+  end
+end
+
 function _git_branch_name
   echo (command git symbolic-ref HEAD ^/dev/null | sed -e 's|^refs/heads/||')
 end
@@ -58,6 +64,7 @@ function fish_prompt
   set -l exit_code $status
 
   set -l gray (set_color 666)
+  set -l blue (set_color blue)
   set -l red (set_color red)
   set -l normal (set_color normal)
   set -l yellow (set_color ffcc00)
@@ -66,12 +73,15 @@ function fish_prompt
 
   set_color -o 666
   printf '['
-  set_color -o blue
+
+  _prompt_whoami $gray $green
+
+  set_color -o cyan
   printf '%s' (prompt_pwd)
 
   _prompt_rubies $gray $red
 
-  _prompt_virtualfish $gray $green
+  _prompt_virtualfish $gray $blue
 
   set_color -o 666
   if set -q SCORPHISH_GIT_INFO_ON_FIRST_LINE
