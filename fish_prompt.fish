@@ -54,7 +54,7 @@ function _git_dirty_remotes -a remote_color -a ahead_color
   set current_branch (command git rev-parse --abbrev-ref HEAD ^/dev/null)
   set current_ref (command git rev-parse HEAD ^/dev/null)
 
-  for remote in (git remote)
+  for remote in (git remote | grep 'origin\|upstream')
 
     set -l git_ahead_count (_git_ahead_count $remote $current_branch)
 
@@ -62,8 +62,8 @@ function _git_dirty_remotes -a remote_color -a ahead_color
     set remote_ref (git for-each-ref --format='%(objectname)' $remote_branch)
     if test "$remote_ref" != ''
       if test "$remote_ref" != $current_ref
-        echo -n "$remote_color!"
         if [ $git_ahead_count != 0 ]
+          echo -n "$remote_color!"
           echo -n "$ahead_color+$git_ahead_count$normal"
         end
       end
