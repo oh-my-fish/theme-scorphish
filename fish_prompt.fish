@@ -12,7 +12,7 @@ function _prompt_rubies -a sep_color -a ruby_color -d 'Display current Ruby (rvm
   end
   [ -z "$ruby_version" ]; and return
 
-  echo -n -s $sep_color '|' $ruby_color $ruby_version
+  echo -n -s $sep_color '|' $ruby_color (echo -n -s $ruby_version | cut -d- -f2-)
 end
 
 function _prompt_virtualfish -a sep_color -a venv_color -d "Display activated virtual environment (only for virtualfish, virtualenv's activate.fish changes prompt by itself)"
