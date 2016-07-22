@@ -16,6 +16,12 @@ Abbreviated path, ruby version and gemset, python version and virtualenv and git
 set -g theme_display_rust yes
 ```
 
+ * To display Node version add the following to `~/.config/fish/config/fish`:
+
+```fish
+set -g theme_display_node yes
+```
+
 
 ### Right prompt
 Last command's exit code and current time

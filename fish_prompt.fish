@@ -26,6 +26,11 @@ function _prompt_rust -a sep_color -a rust_color -d "Display current activated R
   echo -n -s $sep_color '|' $rust_color (rustc --version | cut -d\  -f2)
 end
 
+function _prompt_nvm -a sep_color -a nvm_color -d "Display current activated Node"
+  [ "$theme_display_nvm" != 'yes' -o -z "$NVM_RC_VERSION" ]; and return
+  echo -n -s $sep_color '|' $nvm_color $NVM_RC_VERSION
+end
+
 function _prompt_whoami -a sep_color -a whoami_color -d "Display user@host if on a SSH session"
   if set -q SSH_TTY
     echo -n -s $whoami_color (whoami)@(hostname) $sep_color '|'
@@ -95,6 +100,8 @@ function fish_prompt
   _prompt_virtualfish $gray $blue
 
   _prompt_rust $gray $orange
+
+  _prompt_nvm $gray $green
 
   set_color -o 666
   if set -q SCORPHISH_GIT_INFO_ON_FIRST_LINE
