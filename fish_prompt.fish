@@ -16,8 +16,9 @@ function _prompt_rubies -a sep_color -a ruby_color -d 'Display current Ruby (rvm
 end
 
 function _prompt_virtualfish -a sep_color -a venv_color -d "Display activated virtual environment (only for virtualfish, virtualenv's activate.fish changes prompt by itself)"
-  [ "$theme_display_virtualenv" = 'no' -o -z "$VIRTUAL_ENV" ]; and return
-  echo -n -s $sep_color '|' $venv_color (basename "$VIRTUAL_ENV")
+  [ "$theme_display_virtualenv" = 'no' ]; and return
+  echo -n -s $sep_color '|' $venv_color $PYTHON_VERSION
+  [ -n "$VIRTUAL_ENV" ]; and echo -n -s '@'(basename "$VIRTUAL_ENV")
 end
 
 function _prompt_whoami -a sep_color -a whoami_color -d "Display user@host if on a SSH session"
@@ -80,6 +81,11 @@ function fish_prompt
   printf '%s' (prompt_pwd)
 
   _prompt_rubies $gray $red
+
+  if [ "$VIRTUAL_ENV" != "$LAST_VIRTUAL_ENV" -o -z "$PYTHON_VERSION" ]
+    set -gx PYTHON_VERSION (python --version 2>&1 | cut -d\  -f2)
+    set -gx LAST_VIRTUAL_ENV $VIRTUAL_ENV
+  end
 
   _prompt_virtualfish $gray $blue
 
