@@ -21,6 +21,11 @@ function _prompt_virtualfish -a sep_color -a venv_color -d "Display activated vi
   [ -n "$VIRTUAL_ENV" ]; and echo -n -s '@'(basename "$VIRTUAL_ENV")
 end
 
+function _prompt_rust -a sep_color -a rust_color -d "Display current activated Rust"
+  [ "$theme_display_rust" != 'yes' ]; and return
+  echo -n -s $sep_color '|' $rust_color (rustc --version | cut -d\  -f2)
+end
+
 function _prompt_whoami -a sep_color -a whoami_color -d "Display user@host if on a SSH session"
   if set -q SSH_TTY
     echo -n -s $whoami_color (whoami)@(hostname) $sep_color '|'
@@ -88,6 +93,8 @@ function fish_prompt
   end
 
   _prompt_virtualfish $gray $blue
+
+  _prompt_rust $gray $orange
 
   set_color -o 666
   if set -q SCORPHISH_GIT_INFO_ON_FIRST_LINE

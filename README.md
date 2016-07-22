@@ -8,6 +8,14 @@ Compact. Sufficient.
 ### Left prompt
 Abbreviated path, ruby version and gemset, python version and virtualenv and git info
 
+#### Additional information:
+
+ * To display Rust version add the following to `~/.config/fish/config/fish`:
+
+```fish
+set -g theme_display_rust yes
+```
+
 
 ### Right prompt
 Last command's exit code and current time
