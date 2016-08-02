@@ -7,8 +7,6 @@ function _prompt_rubies -a sep_color -a ruby_color -d 'Display current Ruby (rvm
     set ruby_version (rvm-prompt i v g)
   else if type rbenv >/dev/null 2>&1
     set ruby_version (rbenv version-name)
-    # Don't show global ruby version...
-    [ "$ruby_version" = (rbenv global) ]; and return
   end
   [ -z "$ruby_version" ]; and return
 
