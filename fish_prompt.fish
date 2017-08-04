@@ -88,11 +88,6 @@ function fish_prompt
   set_color -o cyan
   printf '%s' (prompt_pwd)
 
-  if [ "$NVM_BIN" != "$LAST_NVM_BIN" -o -z "$NVM_VERSION" ]
-    set -gx NVM_VERSION (node --version)
-    set -gx LAST_NVM_BIN $NVM_BIN
-  end
-
   _prompt_rubies $gray $red
 
   if [ "$VIRTUAL_ENV" != "$LAST_VIRTUAL_ENV" -o -z "$PYTHON_VERSION" ]
@@ -103,6 +98,11 @@ function fish_prompt
   _prompt_virtualfish $gray $blue
 
   _prompt_rust $gray $orange
+
+  if [ "$NVM_BIN" != "$LAST_NVM_BIN" -o -z "$NVM_VERSION" ]
+    set -gx NVM_VERSION (node --version)
+    set -gx LAST_NVM_BIN $NVM_BIN
+  end
 
   _prompt_nvm $gray $green
 
