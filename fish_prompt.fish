@@ -25,8 +25,8 @@ function _prompt_rust -a sep_color -a rust_color -d "Display current activated R
 end
 
 function _prompt_nvm -a sep_color -a nvm_color -d "Display current activated Node"
-  [ "$theme_display_nvm" != 'yes' -o -z "$NVM_RC_VERSION" ]; and return
-  echo -n -s $sep_color '|' $nvm_color $NVM_RC_VERSION
+  [ "$theme_display_nvm" != 'yes' -o -z "$NVM_VERSION" ]; and return
+  echo -n -s $sep_color '|' $nvm_color $NVM_VERSION
 end
 
 function _prompt_whoami -a sep_color -a whoami_color -d "Display user@host if on a SSH session"
@@ -87,6 +87,11 @@ function fish_prompt
 
   set_color -o cyan
   printf '%s' (prompt_pwd)
+
+  if [ "$NVM_BIN" != "$LAST_NVM_BIN" -o -z "$NVM_VERSION" ]
+    set -gx NVM_VERSION (node --version)
+    set -gx LAST_NVM_BIN $NVM_BIN
+  end
 
   _prompt_rubies $gray $red
 
