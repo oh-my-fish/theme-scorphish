@@ -6,7 +6,7 @@ Compact. Sufficient.
 
 
 ### Left prompt
-Abbreviated path, ruby version and gemset, python version and virtualenv and git info
+Abbreviated path, ruby version and gemset, python version and virtualenv, Elixir and git info
 
 #### Additional information:
 

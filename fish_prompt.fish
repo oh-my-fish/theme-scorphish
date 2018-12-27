@@ -1,16 +1,29 @@
 # name: scorphish
 
-function _prompt_rubies -a sep_color -a ruby_color -d 'Display current Ruby (rvm/rbenv)'
+function _prompt_rubies -a sep_color -a ruby_color -d 'Display current Ruby (rvm/rbenv/asdf)'
   [ "$theme_display_ruby" = 'no' ]; and return
   set -l ruby_version
   if type rvm-prompt >/dev/null 2>&1
-    set ruby_version (rvm-prompt i v g)
+    set ruby_version (rvm-prompt i v g | cut -d- -f2-)
   else if type rbenv >/dev/null 2>&1
-    set ruby_version (rbenv version-name)
+    set ruby_version (rbenv version-name | cut -d- -f2-)
+  else if type asdf >/dev/null 2>&1
+    set ruby_version (asdf current ruby | cut -d ' ' -f1)
   end
   [ -z "$ruby_version" ]; and return
 
-  echo -n -s $sep_color '|' $ruby_color (echo -n -s $ruby_version | cut -d- -f2-)
+  echo -n -s $sep_color '|' $ruby_color (echo -n -s $ruby_version)
+end
+
+function _prompt_elixir -a sep_color -a elixir_color -d 'Display current Elixir (asdf)'
+  [ "$theme_display_elixir" = 'no' ]; and return
+  set -l elixir_version
+  if type asdf >/dev/null 2>&1
+    set elixir_version (asdf current elixir | cut -d ' ' -f1)
+  end
+  [ -z "$elixir_version" ]; and return
+
+  echo -n -s $sep_color '|' $elixir_color (echo -n -s $elixir_version)
 end
 
 function _prompt_virtualfish -a sep_color -a venv_color -d "Display activated virtual environment (only for virtualfish, virtualenv's activate.fish changes prompt by itself)"
@@ -79,6 +92,7 @@ function fish_prompt
   set -l yellow (set_color ffcc00)
   set -l orange (set_color ffb300)
   set -l green (set_color green)
+  set -l magenta (set_color magenta)
 
   set_color -o 666
   printf '['
@@ -89,6 +103,7 @@ function fish_prompt
   printf '%s' (prompt_pwd)
 
   _prompt_rubies $gray $red
+  _prompt_elixir $gray $magenta
 
   if [ "$VIRTUAL_ENV" != "$LAST_VIRTUAL_ENV" -o -z "$PYTHON_VERSION" ]
     set -gx PYTHON_VERSION (python --version 2>&1 | cut -d\  -f2)
