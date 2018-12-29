@@ -7,7 +7,7 @@
 # Copyright (c) 2014, Pablo S. Blum de Aguiar <scorphus@gmail.com>
 
 
-function _prompt_rubies -a sep_color -a ruby_color -d 'Display current Ruby (rvm/rbenv)'
+function _prompt_rubies -a color -d 'Display current Ruby (rvm/rbenv)'
   [ "$theme_display_ruby" = 'no' ]; and return
   set -l ruby_version
   if type rvm-prompt >/dev/null 2>&1
@@ -16,29 +16,30 @@ function _prompt_rubies -a sep_color -a ruby_color -d 'Display current Ruby (rvm
     set ruby_version (rbenv version-name)
   end
   [ -z "$ruby_version" ]; and return
-
-  echo -n -s $sep_color '|' $ruby_color (echo -n -s $ruby_version | cut -d- -f2-)
+  echo -n -s $color (echo -n -s $ruby_version | cut -d- -f2-)
 end
 
-function _prompt_virtualfish -a sep_color -a venv_color -d "Display activated virtual environment (only for virtualfish, virtualenv's activate.fish changes prompt by itself)"
+function _prompt_virtualenv -a color -d "Display currently activated Python virtual environment"
   [ "$theme_display_virtualenv" = 'no' ]; and return
-  echo -n -s $sep_color '|' $venv_color $PYTHON_VERSION
+  echo -n -s $color $PYTHON_VERSION
   [ -n "$VIRTUAL_ENV" ]; and echo -n -s '@'(basename "$VIRTUAL_ENV")
 end
 
-function _prompt_rust -a sep_color -a rust_color -d "Display current activated Rust"
+function _prompt_rust -a color -d "Display currently activated Rust"
   [ "$theme_display_rust" != 'yes' ]; and return
-  echo -n -s $sep_color '|' $rust_color (rustc --version | cut -d\  -f2)
+  if type rustc >/dev/null 2>&1
+    echo -n -s $color (rustc --version | cut -d\  -f2)  # TODO: cache this
+  end
 end
 
-function _prompt_nvm -a sep_color -a nvm_color -d "Display current activated Node"
-  [ "$theme_display_nvm" != 'yes' -o -z "$NVM_VERSION" ]; and return
-  echo -n -s $sep_color '|' $nvm_color $NVM_VERSION
+function _prompt_nvm -a color -d "Display currently activated Node"
+  [ "$theme_display_node" != 'yes' -o -z "$NVM_VERSION" ]; and return
+  echo -n -s $color $NVM_VERSION
 end
 
-function _prompt_whoami -a sep_color -a whoami_color -d "Display user@host if on a SSH session"
+function _prompt_whoami -a sep_color -a color -d "Display user@host if on a SSH session"
   if set -q SSH_TTY
-    echo -n -s $whoami_color (whoami)@(hostname) $sep_color '|'
+    echo -n -s $color (whoami)@(hostname) $sep_color '|'
   end
 end
 
@@ -76,6 +77,59 @@ function _git_dirty_remotes -a remote_color -a ahead_color
   end
 end
 
+function _prompt_versions -a blue gray green orange red append
+  set -l prompt_rubies (_prompt_rubies $red)
+
+  if [ "$VIRTUAL_ENV" != "$LAST_VIRTUAL_ENV" -o -z "$PYTHON_VERSION" ]
+    set -gx PYTHON_VERSION (python --version 2>&1 | cut -d\  -f2)
+    set -gx LAST_VIRTUAL_ENV $VIRTUAL_ENV
+  end
+
+  set -l prompt_virtualenv (_prompt_virtualenv $blue)
+
+  set -l prompt_rust (_prompt_rust $orange)
+
+  if [ "$NVM_BIN" != "$LAST_NVM_BIN" -o -z "$NVM_VERSION" ]
+    set -gx NVM_VERSION (node --version)
+    set -gx LAST_NVM_BIN $NVM_BIN
+  end
+
+  set -l prompt_nvm (_prompt_nvm $green)
+
+  echo -n -e -s "$prompt_rubies $prompt_virtualenv $prompt_rust $prompt_nvm" | string trim | string replace -ar " +" "$gray|" | tr -d '\n'
+end
+
+function _prompt_git -a gray normal orange red yellow
+  if [ (_git_branch_name) ]
+    set -l git_branch (_git_branch_name)
+
+    set dirty_remotes (_git_dirty_remotes $red $orange)
+
+    if [ (_is_git_dirty) ]
+      echo -n -s $gray '‹' $yellow $git_branch $red '*' $dirty_remotes $gray '› '
+    else
+      echo -n -s $gray '‹' $yellow $git_branch $red $dirty_remotes $gray '› '
+    end
+  end
+end
+
+function _prompt_pwd
+  set_color -o cyan
+  printf '%s' (prompt_pwd)
+end
+
+function _prompt_status_arrows -a exit_code
+  if test $exit_code -ne 0
+    set arrow_colors 600 900 c00 f00
+  else
+    set arrow_colors 060 090 0c0 0f0
+  end
+  for arrow_color in $arrow_colors
+    set_color $arrow_color
+    printf '»'
+  end
+end
+
 function fish_prompt
   set -l exit_code $status
 
@@ -83,8 +137,8 @@ function fish_prompt
   set -l blue (set_color blue)
   set -l red (set_color red)
   set -l normal (set_color normal)
-  set -l yellow (set_color ffcc00)
-  set -l orange (set_color ffb300)
+  set -l yellow (set_color yellow)
+  set -l orange (set_color ff9900)
   set -l green (set_color green)
 
   set_color -o 666
@@ -92,64 +146,34 @@ function fish_prompt
 
   _prompt_whoami $gray $green
 
-  set_color -o cyan
-  printf '%s' (prompt_pwd)
-
-  _prompt_rubies $gray $red
-
-  if [ "$VIRTUAL_ENV" != "$LAST_VIRTUAL_ENV" -o -z "$PYTHON_VERSION" ]
-    set -gx PYTHON_VERSION (python --version 2>&1 | cut -d\  -f2)
-    set -gx LAST_VIRTUAL_ENV $VIRTUAL_ENV
+  if not set -q theme_pwd_on_second_line
+    _prompt_pwd
+    set_color -o 666
+    printf '|'
   end
 
-  _prompt_virtualfish $gray $blue
-
-  _prompt_rust $gray $orange
-
-  if [ "$NVM_BIN" != "$LAST_NVM_BIN" -o -z "$NVM_VERSION" ]
-    set -gx NVM_VERSION (node --version)
-    set -gx LAST_NVM_BIN $NVM_BIN
-  end
-
-  _prompt_nvm $gray $green
+  _prompt_versions $blue $gray $green $orange $red
 
   set_color -o 666
-  if set -q SCORPHISH_GIT_INFO_ON_FIRST_LINE
-    printf ']'
-  else
-    printf ']\n'
+  printf ']'
+
+  if set -q theme_git_info_on_first_line
+    _prompt_git $gray $normal $orange $red $yellow
   end
 
-  # Show git branch and dirty state
-  if [ (_git_branch_name) ]
-    set -l git_branch (_git_branch_name)
-
-    set dirty_remotes (_git_dirty_remotes $red $orange)
-
-    if [ (_is_git_dirty) ]
-      echo -n -s $gray '‹' $yellow $git_branch $red '*' $dirty_remotes $gray '›' $normal
-    else
-      echo -n -s $gray '‹' $yellow $git_branch $red $dirty_remotes $gray '›' $normal
-    end
+  if set -q theme_pwd_on_second_line
+    set_color -o 666
+    printf '\n‹'
+    _prompt_pwd
+    set_color -o 666
+    printf '›'
   end
 
-  if test $exit_code -ne 0
-    set arrow_colors 600 900 c00 f00
-  else
-    set arrow_colors 060 090 0c0 0f0
+  printf '\n'
+  if not set -q theme_git_info_on_first_line
+    _prompt_git $gray $normal $orange $red $yellow
   end
-
-  if set -q SCORPHISH_GIT_INFO_ON_FIRST_LINE
-    printf '\n'
-  else
-    printf ' '
-  end
-
-  for arrow_color in $arrow_colors
-    set_color $arrow_color
-    printf '»'
-  end
-
+  _prompt_status_arrows $exit_code
   printf ' '
 
   set_color normal
