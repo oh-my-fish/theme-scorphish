@@ -6,8 +6,8 @@ Compact. Sufficient.
 
 
 ### Left prompt
-Abbreviated path, ruby version and gemset, python version and virtualenv and git
-info.
+Abbreviated path, Ruby version and gemset, Python version and virtualenv, Rust
+version, NodeJS version and Git information.
 
 #### Additional information:
 
@@ -21,6 +21,20 @@ set theme_display_rust yes
 
 ```fish
 set theme_display_node yes
+```
+
+ * To display current working directory on a second line add the following to
+   `~/.config/fish/config/fish`:
+
+```fish
+set -g theme_pwd_on_second_line
+```
+
+ * To display Git information on the first line add the following to
+   `~/.config/fish/config/fish`:
+
+```fish
+set -g theme_git_info_on_first_line
 ```
 
 
