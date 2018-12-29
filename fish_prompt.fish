@@ -1,5 +1,12 @@
 # name: scorphish
 
+# This file is part of theme-scorphis
+
+# Licensed under the MIT license:
+# https://opensource.org/licenses/MIT
+# Copyright (c) 2014, Pablo S. Blum de Aguiar <scorphus@gmail.com>
+
+
 function _prompt_rubies -a sep_color -a ruby_color -d 'Display current Ruby (rvm/rbenv)'
   [ "$theme_display_ruby" = 'no' ]; and return
   set -l ruby_version
