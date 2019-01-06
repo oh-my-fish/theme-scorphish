@@ -36,21 +36,21 @@ function _prompt_whoami -a sep_color -a whoami_color -d "Display user@host if on
 end
 
 function _git_branch_name
-  echo (command git symbolic-ref HEAD ^/dev/null | sed -e 's|^refs/heads/||')
+  echo (command git symbolic-ref HEAD 2> /dev/null | sed -e 's|^refs/heads/||')
 end
 
 function _is_git_dirty
-  echo (command git status -s --ignore-submodules=dirty ^/dev/null)
+  echo (command git status -s --ignore-submodules=dirty 2> /dev/null)
 end
 
 function _git_ahead_count -a remote -a branch_name
-  echo (command git log $remote/$branch_name..HEAD ^/dev/null | \
+  echo (command git log $remote/$branch_name..HEAD 2> /dev/null | \
     grep '^commit' | wc -l | tr -d ' ')
 end
 
 function _git_dirty_remotes -a remote_color -a ahead_color
-  set current_branch (command git rev-parse --abbrev-ref HEAD ^/dev/null)
-  set current_ref (command git rev-parse HEAD ^/dev/null)
+  set current_branch (command git rev-parse --abbrev-ref HEAD 2> /dev/null)
+  set current_ref (command git rev-parse HEAD 2> /dev/null)
 
   for remote in (git remote | grep 'origin\|upstream')
 
