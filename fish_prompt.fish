@@ -32,9 +32,14 @@ function _prompt_rust -a color -d "Display currently activated Rust"
   end
 end
 
-function _prompt_nvm -a color -d "Display currently activated Node"
-  [ "$theme_display_node" != 'yes' -o -z "$NVM_VERSION" ]; and return
-  echo -n -s $color $NVM_VERSION
+function _prompt_node -a color -d "Display currently activated Node"
+  type -q nvm; and begin; set -q NVM_BIN; or return; end # Lazy loading
+  if [ "$NVM_BIN" != "$LAST_NVM_BIN" -o -z "$NODE_VERSION" ]
+    set -gx NODE_VERSION (node --version)
+    set -gx LAST_NVM_BIN $NVM_BIN
+  end
+  [ "$theme_display_node" != 'yes' -o -z "$NODE_VERSION" ]; and return
+  echo -n -s $color $NODE_VERSION
 end
 
 function _prompt_whoami -a sep_color -a color -d "Display user@host if on a SSH session"
@@ -89,12 +94,7 @@ function _prompt_versions -a blue gray green orange red append
 
   set -l prompt_rust (_prompt_rust $orange)
 
-  if [ "$NVM_BIN" != "$LAST_NVM_BIN" -o -z "$NVM_VERSION" ]
-    set -gx NVM_VERSION (node --version)
-    set -gx LAST_NVM_BIN $NVM_BIN
-  end
-
-  set -l prompt_nvm (_prompt_nvm $green)
+  set -l prompt_nvm (_prompt_node $green)
 
   echo -n -e -s "$prompt_rubies $prompt_virtualenv $prompt_rust $prompt_nvm" | string trim | string replace -ar " +" "$gray|" | tr -d '\n'
 end
