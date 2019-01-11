@@ -161,7 +161,7 @@ function fish_prompt
   _prompt_versions $blue $gray $green $orange $red
 
   set_color -o 666
-  printf ']'
+  printf '] ⚡️ %0.3fs' (math $CMD_DURATION / 1000)
 
   if set -q theme_git_info_on_first_line
     _prompt_git $gray $normal $orange $red $yellow
