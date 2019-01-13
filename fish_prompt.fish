@@ -6,40 +6,73 @@
 # https://opensource.org/licenses/MIT
 # Copyright (c) 2014, Pablo S. Blum de Aguiar <scorphus@gmail.com>
 
+# TODO:
+# 1) Check that asdf is installed
+# 2) Check that specific plugin is installed
+# 3) Check that version of the tool is set globally or locally
+# 4) Cache the result
 
-function _prompt_rubies -a color -d 'Display current Ruby (rvm/rbenv)'
+
+# This is temporary
+source ~/.local/share/omf/themes/scorphish/fish_asdf.fish
+
+function _prompt_rubies -a color -d 'Display current Ruby (rvm/rbenv/asdf)'
   [ "$theme_display_ruby" = 'no' ]; and return
   set -l ruby_version
   if type rvm-prompt >/dev/null 2>&1
-    set ruby_version (rvm-prompt i v g)
+    set ruby_version (rvm-prompt i v g | cut -d- -f2-)
   else if type rbenv >/dev/null 2>&1
-    set ruby_version (rbenv version-name)
+    set ruby_version (rbenv version-name | cut -d- -f2-)
+  else if asdf_installed and asdf_plugin_installed "ruby"
+    set ruby_version (asdf_get_version "ruby")
   end
+
   [ -z "$ruby_version" ]; and return
-  echo -n -s $color (echo -n -s $ruby_version | cut -d- -f2-)
+  echo -n -s $color (echo -n -s $ruby_version)
 end
 
 function _prompt_virtualenv -a color -d "Display currently activated Python virtual environment"
   [ "$theme_display_virtualenv" = 'no' ]; and return
-  echo -n -s $color $PYTHON_VERSION
+  
+  if asdf_installed and asdf_plugin_installed "python"
+    set python_version (asdf_get_version "python")
+  else
+    set python_version $PYTHON_VERSION
+  end
+  
+  echo -n -s $color $python_version
   [ -n "$VIRTUAL_ENV" ]; and echo -n -s '@'(basename "$VIRTUAL_ENV")
 end
 
 function _prompt_rust -a color -d "Display currently activated Rust"
   [ "$theme_display_rust" != 'yes' ]; and return
-  if type rustc >/dev/null 2>&1
-    echo -n -s $color (rustc --version | cut -d\  -f2)  # TODO: cache this
+  
+  if asdf_installed and asdf_plugin_installed "rust"
+    set rust_version (asdf_get_version "rust")
+  else if type rustc >/dev/null 2>&1
+    set rust_version (rustc --version | cut -d\  -f2)  # TODO: cache this
   end
+
+  [ -z "$rust_version" ]; and return
+  echo -n -s $color $rust_version 
 end
 
 function _prompt_node -a color -d "Display currently activated Node"
-  type -q nvm; and begin; set -q NVM_BIN; or return; end # Lazy loading
-  if [ "$NVM_BIN" != "$LAST_NVM_BIN" -o -z "$NODE_VERSION" ]
-    set -gx NODE_VERSION (node --version)
-    set -gx LAST_NVM_BIN $NVM_BIN
+  if asdf_installed and asdf_plugin_installed "nodejs"
+    set node_version (asdf_get_version "nodejs")
+  else
+    type -q nvm; and begin; set -q NVM_BIN; or return; end # Lazy loading
+  
+    if [ "$NVM_BIN" != "$LAST_NVM_BIN" -o -z "$NODE_VERSION" ]
+      set -gx NODE_VERSION (node --version)
+      set -gx LAST_NVM_BIN $NVM_BIN
+    end
+
+    set node_version $NODE_VERSION
   end
-  [ "$theme_display_node" != 'yes' -o -z "$NODE_VERSION" ]; and return
-  echo -n -s $color $NODE_VERSION
+
+  [ "$theme_display_node" != 'yes' -o -z "$NODE_VERSION" ]; and return  
+  echo -n -s $color $node_version
 end
 
 function _prompt_whoami -a sep_color -a color -d "Display user@host if on a SSH session"
@@ -83,6 +116,7 @@ function _git_dirty_remotes -a remote_color -a ahead_color
 end
 
 function _prompt_versions -a blue gray green orange red append
+
   set -l prompt_rubies (_prompt_rubies $red)
 
   if [ "$VIRTUAL_ENV" != "$LAST_VIRTUAL_ENV" -o -z "$PYTHON_VERSION" ]
