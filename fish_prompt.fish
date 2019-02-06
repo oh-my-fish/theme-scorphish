@@ -3,9 +3,9 @@
 function _prompt_rubies -a sep_color -a ruby_color -d 'Display current Ruby (rvm/rbenv)'
   [ "$theme_display_ruby" = 'no' ]; and return
   set -l ruby_version
-  if type rvm-prompt >/dev/null 2>&1
+  if type -q rvm-prompt
     set ruby_version (rvm-prompt i v g)
-  else if type rbenv >/dev/null 2>&1
+  else if type -q rbenv
     set ruby_version (rbenv version-name)
   end
   [ -z "$ruby_version" ]; and return
