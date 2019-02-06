@@ -99,7 +99,7 @@ function fish_prompt
 
   _prompt_rust $gray $orange
 
-  if [ "$NVM_BIN" != "$LAST_NVM_BIN" -o -z "$NVM_VERSION" ]
+  if type -q node; and [ "$NVM_BIN" != "$LAST_NVM_BIN" -o -z "$NVM_VERSION" ]
     set -gx NVM_VERSION (node --version)
     set -gx LAST_NVM_BIN $NVM_BIN
   end
