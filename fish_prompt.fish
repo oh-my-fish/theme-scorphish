@@ -21,6 +21,10 @@ end
 
 function _prompt_virtualenv -a color -d "Display currently activated Python virtual environment"
   [ "$theme_display_virtualenv" = 'no' ]; and return
+  if [ "$VIRTUAL_ENV" != "$LAST_VIRTUAL_ENV" -o -z "$PYTHON_VERSION" ]
+    set -gx PYTHON_VERSION (python --version 2>&1 | cut -d\  -f2)
+    set -gx LAST_VIRTUAL_ENV $VIRTUAL_ENV
+  end
   echo -n -s $color $PYTHON_VERSION
   [ -n "$VIRTUAL_ENV" ]; and echo -n -s '@'(basename "$VIRTUAL_ENV")
 end
@@ -85,11 +89,6 @@ end
 
 function _prompt_versions -a blue gray green orange red append
   set -l prompt_rubies (_prompt_rubies $red)
-
-  if [ "$VIRTUAL_ENV" != "$LAST_VIRTUAL_ENV" -o -z "$PYTHON_VERSION" ]
-    set -gx PYTHON_VERSION (python --version 2>&1 | cut -d\  -f2)
-    set -gx LAST_VIRTUAL_ENV $VIRTUAL_ENV
-  end
 
   set -l prompt_virtualenv (_prompt_virtualenv $blue)
 
