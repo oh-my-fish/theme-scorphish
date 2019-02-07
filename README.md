@@ -10,16 +10,16 @@ Abbreviated path, ruby version and gemset, python version and virtualenv and git
 
 #### Additional information:
 
- * To display Rust version add the following to `~/.config/fish/config/fish`:
+ * To display Rust version add the following to `~/.config/fish/conf.d/omf.fish`:
 
 ```fish
-set -g theme_display_rust yes
+set theme_display_rust yes
 ```
 
- * To display Node version add the following to `~/.config/fish/config/fish`:
+ * To display Node version add the following to `~/.config/fish/conf.d/omf.fish`:
 
 ```fish
-set -g theme_display_node yes
+set theme_display_node yes
 ```
 
 
