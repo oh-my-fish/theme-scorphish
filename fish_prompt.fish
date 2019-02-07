@@ -25,7 +25,7 @@ function _prompt_rust -a sep_color -a rust_color -d "Display current activated R
 end
 
 function _prompt_nvm -a sep_color -a nvm_color -d "Display current activated Node"
-  [ "$theme_display_nvm" != 'yes' -o -z "$NVM_VERSION" ]; and return
+  [ "$theme_display_node" != 'yes' -o -z "$NVM_VERSION" ]; and return
   echo -n -s $sep_color '|' $nvm_color $NVM_VERSION
 end
 
