@@ -120,9 +120,9 @@ function fish_prompt
     set dirty_remotes (_git_dirty_remotes $red $orange)
 
     if [ (_is_git_dirty) ]
-      echo -n -s $gray '‹' $yellow $git_branch $red '*' $dirty_remotes $gray '›' $normal
+      echo -n -s $gray '‹' $yellow $git_branch $red '*' $dirty_remotes $gray '› ' $normal
     else
-      echo -n -s $gray '‹' $yellow $git_branch $red $dirty_remotes $gray '›' $normal
+      echo -n -s $gray '‹' $yellow $git_branch $red $dirty_remotes $gray '› ' $normal
     end
   end
 
@@ -134,8 +134,6 @@ function fish_prompt
 
   if set -q SCORPHISH_GIT_INFO_ON_FIRST_LINE
     printf '\n'
-  else
-    printf ' '
   end
 
   for arrow_color in $arrow_colors
