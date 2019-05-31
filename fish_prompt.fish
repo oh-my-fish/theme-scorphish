@@ -35,9 +35,11 @@ end
 
 function _prompt_rust -a color -d "Display currently activated Rust"
   [ "$theme_display_rust" != 'yes' ]; and return
-  if type rustc >/dev/null 2>&1
-    echo -n -s $color (rustc --version | cut -d\  -f2)
+  type -q rustc; or return
+  if echo $history[1] | grep -q 'rustup default'; or not set -q RUST_VERSION
+    set -U RUST_VERSION (rustc --version | cut -d\  -f2)
   end
+  echo -n -s $color $RUST_VERSION
 end
 
 function _prompt_node -a color -d "Display currently activated Node"
