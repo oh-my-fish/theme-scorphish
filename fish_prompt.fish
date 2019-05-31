@@ -131,10 +131,6 @@ function _prompt_status_arrows -a exit_code
     set arrow_colors 060 090 0c0 0f0
   end
 
-  # if set -q SCORPHISH_GIT_INFO_ON_FIRST_LINE
-  #   printf '\n'
-  # end
-
   for arrow_color in $arrow_colors
     set_color $arrow_color
     printf '»'
@@ -167,6 +163,10 @@ function fish_prompt
 
   set_color -o 666
   printf '] ⚡️ %0.3fs' (math $CMD_DURATION / 1000)
+
+  if set -q SCORPHISH_GIT_INFO_ON_FIRST_LINE
+    set theme_git_info_on_first_line
+  end
 
   if set -q theme_git_info_on_first_line
     _prompt_git $gray $normal $orange $red $yellow
