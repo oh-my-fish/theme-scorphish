@@ -8,14 +8,18 @@
 
 
 function _prompt_rubies -a color -d 'Display current Ruby (rvm/rbenv)'
+  type -q ruby; or return
   [ "$theme_display_ruby" = 'no' ]; and return
-  set -l ruby_version
   if type -q rvm-prompt
-    set ruby_version (rvm-prompt i v g)
+    if [ "$RUBY_VERSION" != "$LAST_RUBY_VERSION" -o -z "$ruby_version" ]
+      set -gx ruby_version (rvm-prompt i v g)
+      set -gx LAST_RUBY_VERSION $RUBY_VERSION
+    end
   else if type -q rbenv
-    set ruby_version (rbenv version-name)
+    set -gx ruby_version (rbenv version-name)
+  else if [ -z "$ruby_version" ]
+    set -gx ruby_version (ruby --version | cut -d\  -f2)
   end
-  [ -z "$ruby_version" ]; and return
   echo -n -s $color (echo -n -s $ruby_version | cut -d- -f2-)
 end
 
