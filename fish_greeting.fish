@@ -1,6 +1,6 @@
 # name: scorphish
 
-# This file is part of theme-scorphis
+# This file is part of theme-scorphish
 
 # Licensed under the MIT license:
 # https://opensource.org/licenses/MIT
