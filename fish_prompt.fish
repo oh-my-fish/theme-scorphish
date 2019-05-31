@@ -100,9 +100,9 @@ function _prompt_versions -a blue gray green orange red append
 
   set -l prompt_rust (_prompt_rust $orange)
 
-  set -l prompt_nvm (_prompt_node $green)
+  set -l prompt_node (_prompt_node $green)
 
-  echo -n -e -s "$prompt_rubies $prompt_virtualenv $prompt_rust $prompt_nvm" | string trim | string replace -ar " +" "$gray|" | tr -d '\n'
+  echo -n -e -s "$prompt_rubies $prompt_virtualenv $prompt_rust $prompt_node" | string trim | string replace -ar " +" "$gray|" | tr -d '\n'
 end
 
 function _prompt_git -a gray normal orange red yellow
