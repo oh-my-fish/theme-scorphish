@@ -106,16 +106,13 @@ function _prompt_versions -a blue gray green orange red append
 end
 
 function _prompt_git -a gray normal orange red yellow
-  if [ (_git_branch_name) ]
-    set -l git_branch (_git_branch_name)
-
-    set dirty_remotes (_git_dirty_remotes $red $orange)
-
-    if [ (_is_git_dirty) ]
-      echo -n -s $gray '‹' $yellow $git_branch $red '*' $dirty_remotes $gray '› '
-    else
-      echo -n -s $gray '‹' $yellow $git_branch $red $dirty_remotes $gray '› '
-    end
+  set -l git_branch (_git_branch_name)
+  test -z $git_branch; and return
+  set dirty_remotes (_git_dirty_remotes $red $orange)
+  if [ (_is_git_dirty) ]
+    echo -n -s $gray '‹' $yellow $git_branch $red '*' $dirty_remotes $gray '› '
+  else
+    echo -n -s $gray '‹' $yellow $git_branch $red $dirty_remotes $gray '› '
   end
 end
 
