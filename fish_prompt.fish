@@ -24,6 +24,7 @@ function _prompt_rubies -a color -d 'Display current Ruby (rvm/rbenv)'
 end
 
 function _prompt_virtualenv -a color -d "Display currently activated Python virtual environment"
+  type -q python; or return
   [ "$theme_display_virtualenv" = 'no' ]; and return
   if [ "$VIRTUAL_ENV" != "$LAST_VIRTUAL_ENV" -o -z "$PYTHON_VERSION" ]
     set -gx PYTHON_VERSION (python --version 2>&1 | cut -d\  -f2)
@@ -34,8 +35,8 @@ function _prompt_virtualenv -a color -d "Display currently activated Python virt
 end
 
 function _prompt_rust -a color -d "Display currently activated Rust"
-  [ "$theme_display_rust" != 'yes' ]; and return
   type -q rustc; or return
+  [ "$theme_display_rust" != 'yes' ]; and return
   if echo $history[1] | grep -q 'rustup default'; or not set -q RUST_VERSION
     set -U RUST_VERSION (rustc --version | cut -d\  -f2)
   end
@@ -43,14 +44,14 @@ function _prompt_rust -a color -d "Display currently activated Rust"
 end
 
 function _prompt_node -a color -d "Display currently activated Node"
+  [ "$theme_display_node" != 'yes' ]; and return
   type -q node; or return
   type -q nvm; and begin; set -q NVM_BIN; or return; end # Lazy loading
   if [ "$NVM_BIN" != "$LAST_NVM_BIN" -o -z "$NODE_VERSION" ]
     set -gx NODE_VERSION (node --version)
     set -gx LAST_NVM_BIN $NVM_BIN
   end
-  [ "$theme_display_node" != 'yes' -o -z "$NODE_VERSION" ]; and return
-  echo -n -s $color $NODE_VERSION
+  [ -n "$NODE_VERSION" ]; and echo -n -s $color $NODE_VERSION
 end
 
 function _prompt_whoami -a sep_color -a color -d "Display user@host if on a SSH session"
@@ -106,8 +107,13 @@ function _prompt_versions -a blue gray green orange red append
 end
 
 function _prompt_git -a gray normal orange red yellow
+  test "$theme_display_git" = no; and return
   set -l git_branch (_git_branch_name)
   test -z $git_branch; and return
+  if test "$theme_display_git_dirty" = no
+    echo -n -s $gray '‹' $yellow $git_branch $gray '› '
+    return
+  end
   set dirty_remotes (_git_dirty_remotes $red $orange)
   if [ (_is_git_dirty) ]
     echo -n -s $gray '‹' $yellow $git_branch $red '*' $dirty_remotes $gray '› '
@@ -145,40 +151,35 @@ function fish_prompt
   set -l orange (set_color ff9900)
   set -l green (set_color green)
 
-  set_color -o 666
-  printf '['
+  printf $gray'['
 
   _prompt_whoami $gray $green
 
-  if not set -q theme_pwd_on_second_line
+  if test "$theme_display_pwd_on_second_line" != yes
     _prompt_pwd
-    set_color -o 666
-    printf '|'
+    printf '%s|' $gray
   end
 
   _prompt_versions $blue $gray $green $orange $red
 
-  set_color -o 666
-  printf '] ⚡️ %0.3fs' (math $CMD_DURATION / 1000)
+  printf '%s] ⚡️ %0.3fs' $gray (math $CMD_DURATION / 1000)
 
   if set -q SCORPHISH_GIT_INFO_ON_FIRST_LINE
-    set theme_git_info_on_first_line
+    set theme_display_git_on_first_line
   end
 
-  if set -q theme_git_info_on_first_line
+  if set -q theme_display_git_on_first_line
     _prompt_git $gray $normal $orange $red $yellow
   end
 
-  if set -q theme_pwd_on_second_line
-    set_color -o 666
-    printf '\n‹'
+  if test "$theme_display_pwd_on_second_line" = yes
+    printf $gray'\n‹'
     _prompt_pwd
-    set_color -o 666
-    printf '›'
+    printf $gray'›'
   end
 
   printf '\n'
-  if not set -q theme_git_info_on_first_line
+  if not set -q theme_display_git_on_first_line
     _prompt_git $gray $normal $orange $red $yellow
   end
   _prompt_status_arrows $exit_code
