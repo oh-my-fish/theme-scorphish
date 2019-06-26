@@ -2,7 +2,7 @@
 
 Compact. Sufficient.
 
-![scorphish](https://cloud.githubusercontent.com/assets/2112697/17072736/e7515e4a-5040-11e6-8f5b-95d8bd51bd20.png)
+![scorphish](https://user-images.githubusercontent.com/2112697/60178902-def52b80-97f2-11e9-961d-0f7c115ccc49.png)
 
 ### Left prompt
 
