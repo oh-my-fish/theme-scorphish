@@ -17,7 +17,9 @@ function fish_right_prompt
   printf '%d' $exit_code
   set_color -o 666
   echo '|'
-  set_color -o 777
-  printf '%s' (date +%H:%M:%S)
+  if test $theme_display_time -ne 0
+    set_color -o 777
+    printf '%s' (date +%H:%M:%S)
+  end
   set_color normal
 end
