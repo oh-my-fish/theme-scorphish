@@ -31,7 +31,9 @@ function _prompt_virtualenv -a color -d "Display currently activated Python virt
     set -gx LAST_VIRTUAL_ENV $VIRTUAL_ENV
   end
   echo -n -s $color $PYTHON_VERSION
-  [ -n "$VIRTUAL_ENV" ]; and echo -n -s '@'(basename "$VIRTUAL_ENV")
+  set venv_name (basename "$VIRTUAL_ENV")
+  test $venv_name = ".venv"; and set venv_name (basename (dirname "$VIRTUAL_ENV"))
+  [ -n "$VIRTUAL_ENV" ]; and echo -n -s '@'$venv_name
 end
 
 function _prompt_rust -a color -d "Display currently activated Rust"
