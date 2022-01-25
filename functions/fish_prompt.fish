@@ -112,6 +112,7 @@ function _prompt_git -a gray normal orange red yellow
   test "$theme_display_git" = no; and return
   set -l git_branch (_git_branch_name)
   test -z $git_branch; and return
+  set git_branch (string replace -ar '(\.?[^/]{1})[^/]*/' '$1/' $git_branch)
   if test "$theme_display_git_dirty" = no
     echo -n -s $gray '‹' $yellow $git_branch $gray '› '
     return
