@@ -164,7 +164,7 @@ function fish_prompt
 
   _prompt_versions $blue $gray $green $orange $red
 
-  printf '%s] ⚡️ %0.3fs' $gray (math $CMD_DURATION / 1000)
+  printf '%s] ⏱  %0.3fs ' $gray (math $CMD_DURATION / 1000)
 
   if set -q SCORPHISH_GIT_INFO_ON_FIRST_LINE
     set theme_display_git_on_first_line
