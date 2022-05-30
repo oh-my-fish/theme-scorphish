@@ -166,7 +166,11 @@ function fish_prompt
 
   _prompt_versions $blue $gray $green $orange $red
 
-  printf '%s] ⏱  %0.3fs ' $gray (math $CMD_DURATION / 1000)
+  if test "$theme_display_command_duration_in_right_prompt" != yes
+    printf '%s] ⏱  %0.3fs ' $gray (math $CMD_DURATION / 1000)
+  else
+    printf '%s] %s ' $gray (date +%H:%M:%S)
+  end
 
   if set -q SCORPHISH_GIT_INFO_ON_FIRST_LINE
     set theme_display_git_on_first_line
