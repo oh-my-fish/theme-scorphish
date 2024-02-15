@@ -17,6 +17,7 @@ function _prompt_rubies -a color -d 'Display current Ruby (rvm/rbenv)'
     end
   else if type -q rbenv
     set -gx ruby_version (rbenv version-name)
+    test -z "$ruby_version"; and set -gx ruby_version (ruby --version | cut -d\  -f2)
   else if [ (type -P ruby) != "$LAST_RUBY_PATH" ]
     set -gx ruby_version (ruby --version | cut -d\  -f2)
     set -gx LAST_RUBY_PATH (type -P ruby)
