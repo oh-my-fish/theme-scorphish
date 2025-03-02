@@ -7,9 +7,13 @@
 # Copyright (c) 2014, Pablo S. Blum de Aguiar <scorphus@gmail.com>
 
 function fish_title
-  if [ "$theme_display_virtualenv" = 'no' -o -z "$VIRTUAL_ENV" ]
-    printf '(%s) %s' $_ (prompt_pwd)
+  set -l bin_venv
+  if test "$theme_display_virtualenv" = 'no' -o -z "$VIRTUAL_ENV"
+    set bin_venv "($_)"
   else
-    printf '(%s) %s' (basename "$VIRTUAL_ENV") (prompt_pwd)
+    set -l venv (basename "$VIRTUAL_ENV")
+    test "$venv" = ".venv"; and set venv (basename (dirname "$VIRTUAL_ENV"))
+    set bin_venv "($_) <$venv>"
   end
+  printf " %s %s [%s] " $bin_venv (prompt_pwd) (hostname)
 end
