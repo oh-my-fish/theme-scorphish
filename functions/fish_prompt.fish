@@ -87,11 +87,8 @@ end
 function _git_dirty_remotes -a remote_color -a ahead_color
   set current_branch (command git rev-parse --abbrev-ref HEAD 2> /dev/null)
   set current_ref (command git rev-parse HEAD 2> /dev/null)
-
   for remote in (git remote | grep 'origin\|upstream')
-
     set -l git_ahead_count (_git_ahead_count $remote $current_branch)
-
     set remote_branch "refs/remotes/$remote/$current_branch"
     set remote_ref (git for-each-ref --format='%(objectname)' $remote_branch)
     if test "$remote_ref" != ''
@@ -107,13 +104,9 @@ end
 
 function _prompt_versions -a blue gray green orange red
   set -l prompt_rubies (_prompt_rubies $red)
-
   set -l prompt_virtualenv (_prompt_virtualenv $blue)
-
   set -l prompt_rust (_prompt_rust $orange)
-
   set -l prompt_node (_prompt_node $green)
-
   echo -n -e -s "$prompt_rubies $prompt_virtualenv $prompt_rust $prompt_node" | string trim | string replace -ar " +" "$gray|"
 end
 
@@ -153,7 +146,6 @@ end
 
 function fish_prompt
   set -l exit_code $status
-
   set -l gray (set_color 666)
   set -l blue (set_color blue)
   set -l red (set_color red)
@@ -162,16 +154,12 @@ function fish_prompt
   set -l orange (set_color ff9900)
   set -l green (set_color green)
   set -l cyan (set_color -o cyan)
-
   printf $gray'['
-
   _prompt_whoami $gray $green
-
   if test "$theme_display_pwd_on_second_line" != yes
     _prompt_pwd $cyan
     printf '%s|' $gray
   end
-
   _prompt_versions $blue $gray $green $orange $red
 
   if test "$theme_display_command_duration_in_right_prompt" != yes
