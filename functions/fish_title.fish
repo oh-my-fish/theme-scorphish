@@ -6,7 +6,6 @@
 # https://opensource.org/licenses/MIT
 # Copyright (c) 2014, Pablo S. Blum de Aguiar <scorphus@gmail.com>
 
-
 function fish_title
   if [ "$theme_display_virtualenv" = 'no' -o -z "$VIRTUAL_ENV" ]
     printf '(%s) %s' $_ (prompt_pwd)
