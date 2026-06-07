@@ -26,10 +26,12 @@ function _prompt_rubies -a color -d 'Display current Ruby (rvm/rbenv)'
 end
 
 function _prompt_virtualenv -a color -d "Display currently activated Python virtual environment"
-  type -q python; or return
+  set -l python_cmd python
+  type -q $python_cmd; or set python_cmd python3
+  type -q $python_cmd; or return
   [ "$theme_display_virtualenv" = 'no' ]; and return
   if [ "$VIRTUAL_ENV" != "$LAST_VIRTUAL_ENV" -o -z "$PYTHON_VERSION" ]
-    set -gx PYTHON_VERSION (python --version 2>&1 | cut -d\  -f2)
+    set -gx PYTHON_VERSION ($python_cmd --version 2>&1 | cut -d\  -f2)
     set -gx LAST_VIRTUAL_ENV $VIRTUAL_ENV
   end
   echo -n -s $color $PYTHON_VERSION
