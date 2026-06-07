@@ -43,7 +43,7 @@ end
 function _prompt_rust -a color -d "Display currently activated Rust"
   type -q rustc; or return
   [ "$theme_display_rust" != 'yes' ]; and return
-  if echo $history[1] | grep -q 'rustup default'; or not set -q RUST_VERSION
+  if string match -q 'rustup *' $history[1]; or not set -q RUST_VERSION
     set -U RUST_VERSION (rustc --version | cut -d\  -f2)
   end
   echo -n -s $color $RUST_VERSION
