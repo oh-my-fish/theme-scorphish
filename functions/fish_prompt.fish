@@ -105,7 +105,7 @@ function _git_dirty_remotes -a remote_color -a ahead_color
   end
 end
 
-function _prompt_versions -a blue gray green orange red append
+function _prompt_versions -a blue gray green orange red
   set -l prompt_rubies (_prompt_rubies $red)
 
   set -l prompt_virtualenv (_prompt_virtualenv $blue)
