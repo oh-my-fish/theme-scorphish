@@ -134,9 +134,8 @@ function _prompt_git -a gray normal orange red yellow
   end
 end
 
-function _prompt_pwd
-  set_color -o cyan
-  printf '%s' (prompt_pwd)
+function _prompt_pwd -a color
+  printf '%s%s' $color (prompt_pwd)
 end
 
 function _prompt_status_arrows -a exit_code
@@ -162,13 +161,14 @@ function fish_prompt
   set -l yellow (set_color yellow)
   set -l orange (set_color ff9900)
   set -l green (set_color green)
+  set -l cyan (set_color -o cyan)
 
   printf $gray'['
 
   _prompt_whoami $gray $green
 
   if test "$theme_display_pwd_on_second_line" != yes
-    _prompt_pwd
+    _prompt_pwd $cyan
     printf '%s|' $gray
   end
 
@@ -190,7 +190,7 @@ function fish_prompt
 
   if test "$theme_display_pwd_on_second_line" = yes
     printf $gray'\n‹'
-    _prompt_pwd
+    _prompt_pwd $cyan
     printf $gray'›'
   end
 
