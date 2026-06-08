@@ -67,7 +67,12 @@ function _prompt_whoami -a sep_color -a color -d "Display user@host if on a SSH 
 end
 
 function _git_branch_name
-  echo (command git symbolic-ref HEAD 2> /dev/null | sed -e 's|^refs/heads/||')
+  set -l branch (command git symbolic-ref --short HEAD 2> /dev/null)
+  if test -z "$branch"
+    set -l sha (command git rev-parse --short HEAD 2> /dev/null)
+    test -n "$sha"; and set branch ":$sha"
+  end
+  echo $branch
 end
 
 function _is_git_dirty
