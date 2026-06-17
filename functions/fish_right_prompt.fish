@@ -16,8 +16,12 @@ function fish_right_prompt
   end
   printf '%d' $exit_code
   set_color -o 666
-  echo '|'
+  printf '|'
   set_color -o 777
-  printf '%s' (date +%H:%M:%S)
+  if test "$theme_display_command_duration_in_right_prompt" != yes
+    printf '%s' (date +%H:%M:%S)
+  else
+    printf '%0.3fs' (math $CMD_DURATION / 1000)
+  end
   set_color normal
 end

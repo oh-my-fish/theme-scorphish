@@ -10,6 +10,7 @@
 function _prompt_rubies -a color -d 'Display current Ruby (rvm/rbenv)'
   type -q ruby; or return
   [ "$theme_display_ruby" = 'no' ]; and return
+  set -gx ruby_version
   if type -q rvm-prompt
     if [ "$RUBY_VERSION" != "$LAST_RUBY_VERSION" -o -z "$ruby_version" ]
       set -gx ruby_version (rvm-prompt i v g)
@@ -17,27 +18,33 @@ function _prompt_rubies -a color -d 'Display current Ruby (rvm/rbenv)'
     end
   else if type -q rbenv
     set -gx ruby_version (rbenv version-name)
-  else if [ -z "$ruby_version" ]
+  end
+  if test -z "$ruby_version"; or [ (type -P ruby) != "$LAST_RUBY_PATH" ]
     set -gx ruby_version (ruby --version | cut -d\  -f2)
+    set -gx LAST_RUBY_PATH (type -P ruby)
   end
   echo -n -s $color (echo -n -s $ruby_version | cut -d- -f2-)
 end
 
 function _prompt_virtualenv -a color -d "Display currently activated Python virtual environment"
-  type -q python; or return
+  set -l python_cmd python
+  type -q $python_cmd; or set python_cmd python3
+  type -q $python_cmd; or return
   [ "$theme_display_virtualenv" = 'no' ]; and return
   if [ "$VIRTUAL_ENV" != "$LAST_VIRTUAL_ENV" -o -z "$PYTHON_VERSION" ]
-    set -gx PYTHON_VERSION (python --version 2>&1 | cut -d\  -f2)
+    set -gx PYTHON_VERSION ($python_cmd --version 2>&1 | cut -d\  -f2)
     set -gx LAST_VIRTUAL_ENV $VIRTUAL_ENV
   end
   echo -n -s $color $PYTHON_VERSION
-  [ -n "$VIRTUAL_ENV" ]; and echo -n -s '@'(basename "$VIRTUAL_ENV")
+  set venv_name (basename "$VIRTUAL_ENV")
+  test $venv_name = ".venv"; and set venv_name (basename (dirname "$VIRTUAL_ENV"))
+  [ -n "$VIRTUAL_ENV" ]; and echo -n -s '@'$venv_name
 end
 
 function _prompt_rust -a color -d "Display currently activated Rust"
   type -q rustc; or return
   [ "$theme_display_rust" != 'yes' ]; and return
-  if echo $history[1] | grep -q 'rustup default'; or not set -q RUST_VERSION
+  if string match -q 'rustup *' $history[1]; or not set -q RUST_VERSION
     set -U RUST_VERSION (rustc --version | cut -d\  -f2)
   end
   echo -n -s $color $RUST_VERSION
@@ -61,7 +68,12 @@ function _prompt_whoami -a sep_color -a color -d "Display user@host if on a SSH 
 end
 
 function _git_branch_name
-  echo (command git symbolic-ref HEAD 2> /dev/null | sed -e 's|^refs/heads/||')
+  set -l branch (command git symbolic-ref --short HEAD 2> /dev/null)
+  if test -z "$branch"
+    set -l sha (command git rev-parse --short HEAD 2> /dev/null)
+    test -n "$sha"; and set branch ":$sha"
+  end
+  echo $branch
 end
 
 function _is_git_dirty
@@ -69,18 +81,15 @@ function _is_git_dirty
 end
 
 function _git_ahead_count -a remote -a branch_name
-  echo (command git log $remote/$branch_name..HEAD 2> /dev/null | \
-    grep '^commit' | wc -l | tr -d ' ')
+  command git rev-list --count $remote/$branch_name..HEAD 2> /dev/null
 end
 
 function _git_dirty_remotes -a remote_color -a ahead_color
   set current_branch (command git rev-parse --abbrev-ref HEAD 2> /dev/null)
   set current_ref (command git rev-parse HEAD 2> /dev/null)
-
-  for remote in (git remote | grep 'origin\|upstream')
-
+  for remote in (command git remote)
+    contains $remote origin upstream; or continue
     set -l git_ahead_count (_git_ahead_count $remote $current_branch)
-
     set remote_branch "refs/remotes/$remote/$current_branch"
     set remote_ref (git for-each-ref --format='%(objectname)' $remote_branch)
     if test "$remote_ref" != ''
@@ -94,22 +103,19 @@ function _git_dirty_remotes -a remote_color -a ahead_color
   end
 end
 
-function _prompt_versions -a blue gray green orange red append
+function _prompt_versions -a blue gray green orange red
   set -l prompt_rubies (_prompt_rubies $red)
-
   set -l prompt_virtualenv (_prompt_virtualenv $blue)
-
   set -l prompt_rust (_prompt_rust $orange)
-
   set -l prompt_node (_prompt_node $green)
-
-  echo -n -e -s "$prompt_rubies $prompt_virtualenv $prompt_rust $prompt_node" | string trim | string replace -ar " +" "$gray|" | tr -d '\n'
+  echo -n -e -s "$prompt_rubies $prompt_virtualenv $prompt_rust $prompt_node" | string trim | string replace -ar " +" "$gray|"
 end
 
 function _prompt_git -a gray normal orange red yellow
   test "$theme_display_git" = no; and return
   set -l git_branch (_git_branch_name)
   test -z $git_branch; and return
+  set git_branch (string replace -ar '(\.?[^/]{1})[^/]*/' '$1/' $git_branch)
   if test "$theme_display_git_dirty" = no
     echo -n -s $gray '‹' $yellow $git_branch $gray '› '
     return
@@ -122,9 +128,8 @@ function _prompt_git -a gray normal orange red yellow
   end
 end
 
-function _prompt_pwd
-  set_color -o cyan
-  printf '%s' (prompt_pwd)
+function _prompt_pwd -a color
+  printf '%s%s' $color (prompt_pwd)
 end
 
 function _prompt_status_arrows -a exit_code
@@ -142,7 +147,6 @@ end
 
 function fish_prompt
   set -l exit_code $status
-
   set -l gray (set_color 666)
   set -l blue (set_color blue)
   set -l red (set_color red)
@@ -150,19 +154,20 @@ function fish_prompt
   set -l yellow (set_color yellow)
   set -l orange (set_color ff9900)
   set -l green (set_color green)
-
+  set -l cyan (set_color -o cyan)
   printf $gray'['
-
   _prompt_whoami $gray $green
-
   if test "$theme_display_pwd_on_second_line" != yes
-    _prompt_pwd
+    _prompt_pwd $cyan
     printf '%s|' $gray
   end
-
   _prompt_versions $blue $gray $green $orange $red
 
-  printf '%s] ⚡️ %0.3fs' $gray (math $CMD_DURATION / 1000)
+  if test "$theme_display_command_duration_in_right_prompt" != yes
+    printf '%s] … %0.3fs ' $gray (math $CMD_DURATION / 1000)
+  else
+    printf '%s] %s ' $gray (date +%H:%M:%S)
+  end
 
   if set -q SCORPHISH_GIT_INFO_ON_FIRST_LINE
     set theme_display_git_on_first_line
@@ -174,7 +179,7 @@ function fish_prompt
 
   if test "$theme_display_pwd_on_second_line" = yes
     printf $gray'\n‹'
-    _prompt_pwd
+    _prompt_pwd $cyan
     printf $gray'›'
   end
 
