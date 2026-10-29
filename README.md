@@ -80,6 +80,14 @@ set -g theme_display_virtualenv no
 
 Last command's exit code and current time
 
+#### Configuration:
+
+ * To hide the right prompt:
+
+```fish
+set -g theme_display_right_prompt no
+```
+
 ### Acknowledgments
 
 This theme is based on Zish and Coffeandcode themes, many thanks to their

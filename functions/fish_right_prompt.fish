@@ -9,6 +9,9 @@
 
 function fish_right_prompt
   set -l exit_code $status
+  if test "$theme_display_right_prompt" = no
+    return
+  end
   if test $exit_code -ne 0
     set_color red
   else
