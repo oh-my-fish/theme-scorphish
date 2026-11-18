@@ -95,9 +95,11 @@ function _prompt_git -a gray normal orange red yellow
   set -l git_status (command git status --porcelain=v2 --branch --ignore-submodules=dirty 2> /dev/null)
   set -l dirty
   string match -qv '#*' -- $git_status; and set dirty '*'
-  set -l ahead (string match -r '^# branch\.ab \+(\d+)' -- $git_status)[2]
+  set -l ab (string match -r '^# branch\.ab \+(\d+) -(\d+)' -- $git_status)
   set -l remotes
-  test -n "$ahead" -a "$ahead" != 0; and set remotes $red'!'$orange'+'$ahead
+  test -n "$ab[2]" -a "$ab[2]" != 0; and set -a remotes $orange'+'$ab[2]
+  test -n "$ab[3]" -a "$ab[3]" != 0; and set -a remotes $orange'-'$ab[3]
+  set -q remotes[1]; and set remotes $red'!' $remotes
   echo -n -s $gray '‹' $yellow $git_branch $red $dirty $remotes $gray '› '
 end
 
