@@ -75,33 +75,6 @@ function _git_branch_name
   echo $branch
 end
 
-function _is_git_dirty
-  echo (command git status -s --ignore-submodules=dirty 2> /dev/null)
-end
-
-function _git_ahead_count -a remote -a branch_name
-  echo (command git log $remote/$branch_name..HEAD 2> /dev/null | \
-    grep '^commit' | wc -l | tr -d ' ')
-end
-
-function _git_dirty_remotes -a remote_color -a ahead_color
-  set current_branch (command git rev-parse --abbrev-ref HEAD 2> /dev/null)
-  set current_ref (command git rev-parse HEAD 2> /dev/null)
-  for remote in (git remote | grep 'origin\|upstream')
-    set -l git_ahead_count (_git_ahead_count $remote $current_branch)
-    set remote_branch "refs/remotes/$remote/$current_branch"
-    set remote_ref (git for-each-ref --format='%(objectname)' $remote_branch)
-    if test "$remote_ref" != ''
-      if test "$remote_ref" != $current_ref
-        if [ $git_ahead_count != 0 ]
-          echo -n "$remote_color!"
-          echo -n "$ahead_color+$git_ahead_count$normal"
-        end
-      end
-    end
-  end
-end
-
 function _prompt_versions -a blue gray green orange red
   set -l prompt_rubies (_prompt_rubies $red)
   set -l prompt_virtualenv (_prompt_virtualenv $blue)
@@ -119,12 +92,13 @@ function _prompt_git -a gray normal orange red yellow
     echo -n -s $gray '‹' $yellow $git_branch $gray '› '
     return
   end
-  set dirty_remotes (_git_dirty_remotes $red $orange)
-  if [ (_is_git_dirty) ]
-    echo -n -s $gray '‹' $yellow $git_branch $red '*' $dirty_remotes $gray '› '
-  else
-    echo -n -s $gray '‹' $yellow $git_branch $red $dirty_remotes $gray '› '
-  end
+  set -l git_status (command git status --porcelain=v2 --branch --ignore-submodules=dirty 2> /dev/null)
+  set -l dirty
+  string match -qv '#*' -- $git_status; and set dirty '*'
+  set -l ahead (string match -r '^# branch\.ab \+(\d+)' -- $git_status)[2]
+  set -l remotes
+  test -n "$ahead" -a "$ahead" != 0; and set remotes $red'!'$orange'+'$ahead
+  echo -n -s $gray '‹' $yellow $git_branch $red $dirty $remotes $gray '› '
 end
 
 function _prompt_pwd -a color
