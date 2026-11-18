@@ -11,9 +11,9 @@ function fish_title
   if test "$theme_display_virtualenv" = 'no' -o -z "$VIRTUAL_ENV"
     set bin_venv "($_)"
   else
-    set -l venv (basename "$VIRTUAL_ENV")
-    test "$venv" = ".venv"; and set venv (basename (dirname "$VIRTUAL_ENV"))
+    set -l venv (path basename -- "$VIRTUAL_ENV")
+    test "$venv" = ".venv"; and set venv (path basename (path dirname -- "$VIRTUAL_ENV"))
     set bin_venv "($_) <$venv>"
   end
-  printf " %s %s [%s] " $bin_venv (prompt_pwd) (hostname)
+  printf " %s %s [%s] " $bin_venv (prompt_pwd) $hostname
 end
