@@ -22,7 +22,7 @@ function _prompt_rubies -a color -d 'Display current Ruby (rvm/rbenv)'
     set -gx ruby_version (ruby --version | cut -d\  -f2)
     set -gx LAST_RUBY_PATH (type -P ruby)
   end
-  echo -n -s $color (echo -n -s $ruby_version | cut -d- -f2-)
+  echo -n -s $color (string replace -r '^[^-]*-' '' -- $ruby_version)
 end
 
 function _prompt_virtualenv -a color -d "Display currently activated Python virtual environment"
@@ -35,8 +35,8 @@ function _prompt_virtualenv -a color -d "Display currently activated Python virt
     set -gx LAST_VIRTUAL_ENV $VIRTUAL_ENV
   end
   echo -n -s $color $PYTHON_VERSION
-  set venv_name (basename "$VIRTUAL_ENV")
-  test $venv_name = ".venv"; and set venv_name (basename (dirname "$VIRTUAL_ENV"))
+  set venv_name (path basename -- "$VIRTUAL_ENV")
+  test "$venv_name" = ".venv"; and set venv_name (path basename (path dirname -- "$VIRTUAL_ENV"))
   [ -n "$VIRTUAL_ENV" ]; and echo -n -s '@'$venv_name
 end
 
@@ -62,7 +62,7 @@ end
 
 function _prompt_whoami -a sep_color -a color -d "Display user@host if on a SSH session"
   if set -q SSH_TTY
-    echo -n -s $color (whoami)@(hostname) $sep_color '|'
+    echo -n -s $color $USER@$hostname $sep_color '|'
   end
 end
 
