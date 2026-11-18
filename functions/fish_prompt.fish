@@ -85,14 +85,18 @@ end
 
 function _prompt_git -a gray normal orange red yellow
   test "$theme_display_git" = no; and return
-  set -l git_branch (_git_branch_name)
-  test -z $git_branch; and return
-  set git_branch (string replace -ar '(\.?[^/]{1})[^/]*/' '$1/' $git_branch)
   if test "$theme_display_git_dirty" = no
+    set -l git_branch (_git_branch_name)
+    test -z "$git_branch"; and return
+    set git_branch (string replace -ar '(\.?[^/]{1})[^/]*/' '$1/' $git_branch)
     echo -n -s $gray '‹' $yellow $git_branch $gray '› '
     return
   end
   set -l git_status (command git status --porcelain=v2 --branch --ignore-submodules=dirty 2> /dev/null)
+  set -l git_branch (string replace -rf '^# branch\.head ' '' -- $git_status)
+  test "$git_branch" = '(detached)'; and set git_branch :(string replace -rf '^# branch\.oid (.{7}).*' '$1' -- $git_status)
+  test -z "$git_branch"; and return
+  set git_branch (string replace -ar '(\.?[^/]{1})[^/]*/' '$1/' $git_branch)
   set -l dirty
   string match -qv '#*' -- $git_status; and set dirty '*'
   set -l ab (string match -r '^# branch\.ab \+(\d+) -(\d+)' -- $git_status)
