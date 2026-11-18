@@ -40,13 +40,52 @@ function _prompt_virtualenv -a color -d "Display currently activated Python virt
   [ -n "$VIRTUAL_ENV" ]; and echo -n -s '@'$venv_name
 end
 
+function _rust_toolchain_file -a dir -d "Print the nearest rust-toolchain file from dir up"
+  while not path filter -f $dir/rust-toolchain.toml $dir/rust-toolchain
+    test $dir = /; and return
+    set dir (path dirname $dir)
+  end
+end
+
+# Everything that decides which rustc runs here. rustup writes `default` and
+# `override` to settings.toml, and installs and updates replace a toolchain's
+# bin/rustc. Fails while any of those files changed within the current second,
+# and when the compiler is selected by path, which cannot be watched.
+function _rust_version_key
+  set -l rustup_home ~/.rustup
+  set -q RUSTUP_HOME; and set rustup_home $RUSTUP_HOME
+  set -l settings $rustup_home/settings.toml
+  set -l compilers $rustup_home/toolchains/*/bin/rustc
+  set -l rustc (command -s rustc)
+  # rustup searches from the real directory, not through symlinks.
+  set -l dir (path resolve .)
+  set -l toolchain_file (_rust_toolchain_file $dir)
+  # Overrides are kept per directory, so with any set the directory matters.
+  set -l override_dir
+  path is -f $settings; and string match -qr '^"' < $settings; and set override_dir $dir
+  set -l files $rustc $settings $compilers $toolchain_file
+  echo $RUSTUP_TOOLCHAIN $rustc $toolchain_file $override_dir (path mtime $files)
+  string match -q '*/*' -- "$RUSTUP_TOOLCHAIN"; and return 1
+  for file in $toolchain_file
+    string match -qr '^[^#]*\bpath["\x27]?\s*=' < $file; and return 1
+  end
+  # path mtime counts whole seconds, so another change could follow in this one.
+  not contains 0 (path mtime -R $files)
+end
+
 function _prompt_rust -a color -d "Display currently activated Rust"
   type -q rustc; or return
   [ "$theme_display_rust" != 'yes' ]; and return
-  if string match -q 'rustup *' $history[1]; or not set -q RUST_VERSION
-    set -U RUST_VERSION (rustc --version | cut -d\  -f2)
+  set -l key (_rust_version_key)
+  set -l key_settled $status
+  if not set -q LAST_RUST_KEY; or test "$key" != "$LAST_RUST_KEY"
+    set -eg LAST_RUST_KEY
+    # Without RUSTUP_AUTO_INSTALL=0 a missing toolchain is downloaded here, silently.
+    set -g RUST_VERSION (RUSTUP_AUTO_INSTALL=0 rustc --version 2>/dev/null | string split -f2 ' ')
+    and test $key_settled -eq 0
+    and set -g LAST_RUST_KEY $key
   end
-  echo -n -s $color $RUST_VERSION
+  test -n "$RUST_VERSION"; and echo -n -s $color $RUST_VERSION
 end
 
 function _prompt_node -a color -d "Display currently activated Node"
