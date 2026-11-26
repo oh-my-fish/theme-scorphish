@@ -63,14 +63,21 @@ function _rust_version_key
   # Overrides are kept per directory, so with any set the directory matters.
   set -l override_dir
   path is -fr $settings; and string match -qr '^\s*["\x27]' < $settings; and set override_dir $dir
-  set -l files $rustc $settings $compilers $toolchain_file
-  string join -- ' ' $RUSTUP_TOOLCHAIN $rustc $toolchain_file $override_dir (path mtime $files)
+  string join -- ' ' \
+    "toolchain=$RUSTUP_TOOLCHAIN" \
+    "rustc=$rustc" \
+    "file=$toolchain_file" \
+    "dir=$override_dir" \
+    "rustc_time=$(path mtime $rustc)" \
+    "settings_time=$(path mtime $settings)" \
+    "file_time=$(path mtime $toolchain_file | string join ,)" \
+    "compiler_times=$(path mtime $compilers | string join ,)"
   string match -q '*/*' -- "$RUSTUP_TOOLCHAIN"; and return 1
   for file in $toolchain_file
     string match -qr '^[^#]*\bpath["\x27]?\s*=' < $file; and return 1
   end
   # path mtime counts whole seconds, so another change could follow in this one.
-  not contains 0 (path mtime -R $files)
+  not contains 0 (path mtime -R $rustc $settings $compilers $toolchain_file)
 end
 
 function _prompt_rust -a color -d "Display currently activated Rust"
