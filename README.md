@@ -41,7 +41,8 @@ set -g theme_display_pwd_on_second_line yes
 set -g theme_display_git_on_first_line yes
 ```
 
- * To display command duration in right prompt:
+ * To display command duration in right prompt and current time in its
+   place on the left:
 
 ```fish
 set -g theme_display_command_duration_in_right_prompt yes
