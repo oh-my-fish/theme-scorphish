@@ -46,7 +46,6 @@ set -g theme_display_git_on_first_line yes
 
 ```fish
 set -g theme_display_command_duration_in_right_prompt yes
-
 ```
 
  * To omit only dirty status of current local Git repository and have
@@ -60,21 +59,18 @@ set -g theme_display_git_dirty no
 
 ```fish
 set -g theme_display_git no
-
 ```
 
  * To omit current Ruby version and gemset:
 
 ```fish
 set -g theme_display_ruby no
-
 ```
 
  * To omit current Python version and virtualenv:
 
 ```fish
 set -g theme_display_virtualenv no
-
 ```
 
 ### Right prompt
