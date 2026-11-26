@@ -6,6 +6,28 @@
 # https://opensource.org/licenses/MIT
 # Copyright (c) 2014, Pablo S. Blum de Aguiar <scorphus@gmail.com>
 
+# Everything that decides what `rbenv version-name` prints. rbenv searches from
+# $PWD as the shell has it, through symlinks. Fails while RBENV_DIR is set, and
+# while the versions folder changed within the current second.
+function _rbenv_version_key
+  set -l root ~/.rbenv
+  test -n "$RBENV_ROOT"; and set root $RBENV_ROOT
+  set -l dir $PWD
+  while not test -s $dir/.ruby-version; and test $dir != /
+    set dir (path dirname $dir)
+  end
+  set -l file $dir/.ruby-version
+  test -s $file; or set file $root/version
+  string join -- ' ' \
+    "version=$RBENV_VERSION" \
+    "dir=$RBENV_DIR" \
+    "root=$root" \
+    "file=$file" \
+    "content=$(path is -fr $file; and string join ' ' < $file)" \
+    "versions_time=$(path mtime $root/versions)"
+  test -n "$RBENV_DIR"; and return 1
+  not contains 0 (path mtime -R $root/versions)
+end
 
 function _prompt_rubies -a color -d 'Display current Ruby (rvm/rbenv)'
   type -q ruby; or return
@@ -13,13 +35,22 @@ function _prompt_rubies -a color -d 'Display current Ruby (rvm/rbenv)'
   if type -q rvm-prompt
     if [ "$RUBY_VERSION" != "$LAST_RUBY_VERSION" -o -z "$ruby_version" ]
       set -gx ruby_version (rvm-prompt i v g)
+      set -eg LAST_RBENV_KEY
       set -gx LAST_RUBY_VERSION $RUBY_VERSION
     end
   else if type -q rbenv
-    set -gx ruby_version (rbenv version-name)
-    test -z "$ruby_version"; and set -gx ruby_version (ruby --version | string split -f2 ' ')
+    set -l key (_rbenv_version_key)
+    set -l key_settled $status
+    if not set -q LAST_RBENV_KEY; or test "$key" != "$LAST_RBENV_KEY"
+      set -eg LAST_RBENV_KEY
+      set -gx ruby_version (rbenv version-name)
+      and test -n "$ruby_version" -a $key_settled -eq 0
+      and set -g LAST_RBENV_KEY $key
+      test -z "$ruby_version"; and set -gx ruby_version (ruby --version | string split -f2 ' ')
+    end
   else if [ (type -P ruby) != "$LAST_RUBY_PATH" ]
     set -gx ruby_version (ruby --version | string split -f2 ' ')
+    set -eg LAST_RBENV_KEY
     set -gx LAST_RUBY_PATH (type -P ruby)
   end
   echo -n -s $color (string replace -r '^[^-]*-' '' -- $ruby_version)
