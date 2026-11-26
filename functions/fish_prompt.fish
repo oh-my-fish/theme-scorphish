@@ -67,6 +67,7 @@ function _rust_version_key
     "toolchain=$RUSTUP_TOOLCHAIN" \
     "home=$(path resolve $rustup_home)" \
     "rustc=$rustc" \
+    "real=$(path resolve $rustc)" \
     "file=$toolchain_file" \
     "dir=$override_dir" \
     "rustc_time=$(path mtime $rustc)" \
