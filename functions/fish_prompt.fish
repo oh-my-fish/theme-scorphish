@@ -17,9 +17,9 @@ function _prompt_rubies -a color -d 'Display current Ruby (rvm/rbenv)'
     end
   else if type -q rbenv
     set -gx ruby_version (rbenv version-name)
-    test -z "$ruby_version"; and set -gx ruby_version (ruby --version | cut -d\  -f2)
+    test -z "$ruby_version"; and set -gx ruby_version (ruby --version | string split -f2 ' ')
   else if [ (type -P ruby) != "$LAST_RUBY_PATH" ]
-    set -gx ruby_version (ruby --version | cut -d\  -f2)
+    set -gx ruby_version (ruby --version | string split -f2 ' ')
     set -gx LAST_RUBY_PATH (type -P ruby)
   end
   echo -n -s $color (string replace -r '^[^-]*-' '' -- $ruby_version)
@@ -31,7 +31,7 @@ function _prompt_virtualenv -a color -d "Display currently activated Python virt
   type -q $python_cmd; or return
   [ "$theme_display_virtualenv" = 'no' ]; and return
   if [ "$VIRTUAL_ENV" != "$LAST_VIRTUAL_ENV" -o -z "$PYTHON_VERSION" ]
-    set -gx PYTHON_VERSION ($python_cmd --version 2>&1 | cut -d\  -f2)
+    set -gx PYTHON_VERSION ($python_cmd --version 2>&1 | string split -f2 ' ')
     set -gx LAST_VIRTUAL_ENV $VIRTUAL_ENV
   end
   echo -n -s $color $PYTHON_VERSION
