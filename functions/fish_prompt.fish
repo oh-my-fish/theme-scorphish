@@ -65,6 +65,7 @@ function _rust_version_key
   path is -fr $settings; and string match -qr '^\s*["\x27]' < $settings; and set override_dir $dir
   string join -- ' ' \
     "toolchain=$RUSTUP_TOOLCHAIN" \
+    "home=$(path resolve $rustup_home)" \
     "rustc=$rustc" \
     "file=$toolchain_file" \
     "dir=$override_dir" \
