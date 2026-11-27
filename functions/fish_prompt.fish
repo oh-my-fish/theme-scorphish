@@ -56,15 +56,31 @@ function _prompt_rubies -a color -d 'Display current Ruby (rvm/rbenv)'
   echo -n -s $color (string replace -r '^[^-]*-' '' -- $ruby_version)
 end
 
+# Fails while the program changed within the current second.
+function _program_version_key -a program selector
+  set -l cmd (command -s $program)
+  string join -- ' ' \
+    "cmd=$cmd" \
+    "real=$(path resolve $cmd)" \
+    "time=$(path mtime $cmd)" \
+    "selector=$selector"
+  not contains 0 (path mtime -R $cmd)
+end
+
 function _prompt_virtualenv -a color -d "Display currently activated Python virtual environment"
   set -l python_cmd python
   type -q $python_cmd; or set python_cmd python3
   type -q $python_cmd; or return
   [ "$theme_display_virtualenv" = 'no' ]; and return
-  if [ "$VIRTUAL_ENV" != "$LAST_VIRTUAL_ENV" -o -z "$PYTHON_VERSION" ]
+  set -l key (_program_version_key $python_cmd $VIRTUAL_ENV)
+  set -l key_settled $status
+  if not set -q LAST_PYTHON_KEY; or test "$key" != "$LAST_PYTHON_KEY"
+    set -eg LAST_PYTHON_KEY
     set -gx PYTHON_VERSION ($python_cmd --version 2>&1 | string split -f2 ' ')
-    set -gx LAST_VIRTUAL_ENV $VIRTUAL_ENV
+    and test -n "$PYTHON_VERSION" -a $key_settled -eq 0
+    and set -g LAST_PYTHON_KEY $key
   end
+  test -n "$PYTHON_VERSION"; or return
   echo -n -s $color $PYTHON_VERSION
   set venv_name (path basename -- "$VIRTUAL_ENV")
   test "$venv_name" = ".venv"; and set venv_name (path basename (path dirname -- "$VIRTUAL_ENV"))
@@ -132,9 +148,13 @@ function _prompt_node -a color -d "Display currently activated Node"
   [ "$theme_display_node" != 'yes' ]; and return
   type -q node; or return
   type -q nvm; and begin; set -q NVM_BIN; or return; end # Lazy loading
-  if [ "$NVM_BIN" != "$LAST_NVM_BIN" -o -z "$NODE_VERSION" ]
+  set -l key (_program_version_key node $NVM_BIN)
+  set -l key_settled $status
+  if not set -q LAST_NODE_KEY; or test "$key" != "$LAST_NODE_KEY"
+    set -eg LAST_NODE_KEY
     set -gx NODE_VERSION (node --version)
-    set -gx LAST_NVM_BIN $NVM_BIN
+    and test -n "$NODE_VERSION" -a $key_settled -eq 0
+    and set -g LAST_NODE_KEY $key
   end
   [ -n "$NODE_VERSION" ]; and echo -n -s $color $NODE_VERSION
 end
