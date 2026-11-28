@@ -202,6 +202,9 @@ function _prompt_git -a gray normal orange red yellow
   test -z "$git_branch"; and return
   set -l operation (_scorphish_git_operation)
   set -q operation[2]; and set git_branch $operation[2]
+  if not set -q operation[1]; and string match -q ':*' -- $git_branch
+    set -l tag (_scorphish_git_tag); and set git_branch $tag$git_branch
+  end
   set -q operation[1]; and set operation $gray'|'$red$operation[1]
   set git_branch (string replace -ar '(\.?[^/]{1})[^/]*/' '$1/' $git_branch)
   echo -n -s $gray '‹' $yellow $git_branch $operation $red $dirty $remotes $gray '› '

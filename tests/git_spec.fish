@@ -38,6 +38,17 @@ function make_conflicting_branches
   commit_file other other
 end
 
+function log_git_calls
+  fake_program $work/bin/git "exec $(command -s git) \"\$@\""
+  set -gx PATH $work/bin $PATH
+end
+
+function git_calls_in_one_prompt
+  clear_calls
+  git_part >/dev/null
+  echo (call_count git) (call_count 'git describe')
+end
+
 function describe_git_branch
   function before_all
     start_spec
@@ -196,5 +207,56 @@ function describe_git_branch
     assert_equal '' "$(git_part)"
     set -g theme_display_git_dirty no
     assert_equal '' "$(git_part)"
+  end
+
+  function it_shows_the_annotated_tag_on_a_detached_head
+    start_git_test
+    run_git tag -a v1.2.0 -m release
+    run_git checkout --detach
+    set -l commit (command git rev-parse --short=7 HEAD)
+    assert_equal "‹v1.2.0:$commit› " "$(git_part)"
+    set -g theme_display_git_dirty no
+    assert_equal "‹v1.2.0:$commit› " "$(git_part)"
+  end
+
+  function it_shows_the_lightweight_tag_on_a_detached_head
+    start_git_test
+    run_git tag v1.2.0
+    run_git checkout --detach
+    set -l commit (command git rev-parse --short=7 HEAD)
+    assert_equal "‹v1.2.0:$commit› " "$(git_part)"
+    set -g theme_display_git_dirty no
+    assert_equal "‹v1.2.0:$commit› " "$(git_part)"
+  end
+
+  function it_shows_no_tag_and_looks_for_none_on_a_branch
+    start_git_test
+    run_git tag v1.2.0
+    log_git_calls
+    assert_equal '‹f/prompt-tests› ' "$(git_part)"
+    assert_equal '1 0' "$(git_calls_in_one_prompt)"
+    set -g theme_display_git_dirty no
+    assert_equal '‹f/prompt-tests› ' "$(git_part)"
+    assert_equal '1 0' "$(git_calls_in_one_prompt)"
+  end
+
+  function it_looks_for_the_tag_only_on_a_detached_head_without_an_operation
+    start_git_test
+    make_conflicting_branches
+    log_git_calls
+    run_git checkout --detach
+    assert_equal '2 1' "$(git_calls_in_one_prompt)"
+    run_git tag v1.2.0
+    assert_equal '2 1' "$(git_calls_in_one_prompt)"
+    run_git checkout feature/prompt-tests
+    run_git rebase base
+    assert_equal '1 0' "$(git_calls_in_one_prompt)"
+    set -g theme_display_git_dirty no
+    assert_equal '2 0' "$(git_calls_in_one_prompt)"
+    run_git rebase --abort
+    run_git checkout --detach
+    assert_equal '3 1' "$(git_calls_in_one_prompt)"
+    run_git bisect start HEAD base~1
+    assert_equal '2 0' "$(git_calls_in_one_prompt)"
   end
 end
