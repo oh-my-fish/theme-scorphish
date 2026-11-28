@@ -1,0 +1,45 @@
+name: Test
+on:
+  push:
+  pull_request:
+jobs:
+  test:
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - ubuntu-latest
+          - macos-latest
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Check out the theme
+        uses: actions/checkout@v4
+        with:
+          path: scorphish
+
+      - name: Check out Oh My Fish
+        uses: actions/checkout@v4
+        with:
+          repository: oh-my-fish/oh-my-fish
+          path: oh-my-fish
+
+      - name: Install fish on Ubuntu
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-add-repository --yes ppa:fish-shell/release-4
+          sudo apt-get update
+          sudo apt-get install --yes fish
+
+      - name: Install fish on macOS
+        if: runner.os == 'macOS'
+        run: brew install fish
+
+      - name: Install Oh My Fish
+        working-directory: oh-my-fish
+        run: fish bin/install --verbose --offline --noninteractive --yes
+
+      - name: Run the tests
+        working-directory: scorphish
+        run: |
+          fish --version
+          fish -c 'fish-spec tests/*_spec.fish'
