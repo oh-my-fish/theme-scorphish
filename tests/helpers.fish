@@ -7,7 +7,8 @@ set -g test_globals PATH fish_function_path CALLS_LOG \
   ruby_version RUBY_VERSION LAST_RBENV_KEY LAST_RUBY_VERSION LAST_RUBY_PATH RBENV_ROOT RBENV_VERSION RBENV_DIR \
   PYTHON_VERSION LAST_PYTHON_KEY VIRTUAL_ENV NODE_VERSION LAST_NODE_KEY NVM_BIN \
   theme_display_rust theme_display_ruby theme_display_virtualenv theme_display_node \
-  theme_display_git theme_display_git_dirty GIT_CONFIG_GLOBAL GIT_CONFIG_NOSYSTEM
+  theme_display_git theme_display_git_dirty GIT_CONFIG_GLOBAL GIT_CONFIG_NOSYSTEM \
+  GIT_EDITOR GIT_DIR GIT_WORK_TREE
 
 function start_spec
   set -g test_start_dir $PWD
@@ -46,7 +47,7 @@ function start_test
   for name in $test_globals
     set -eg $name
   end
-  set -g fish_function_path
+  set -g fish_function_path (path dirname $prompt_file)
   functions -e nvm node python python3 rbenv ruby rvm-prompt rustc
   set -g theme_display_rust yes
   set -g theme_display_ruby yes

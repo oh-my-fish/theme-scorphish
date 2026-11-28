@@ -184,26 +184,30 @@ end
 
 function _prompt_git -a gray normal orange red yellow
   test "$theme_display_git" = no; and return
-  if test "$theme_display_git_dirty" = no
-    set -l git_branch (_git_branch_name)
-    test -z "$git_branch"; and return
-    set git_branch (string replace -ar '(\.?[^/]{1})[^/]*/' '$1/' $git_branch)
-    echo -n -s $gray '‹' $yellow $git_branch $gray '› '
-    return
-  end
-  set -l git_status (command git status --porcelain=v2 --branch --ignore-submodules=dirty 2> /dev/null)
-  set -l git_branch (string replace -rf '^# branch\.head ' '' -- $git_status)
-  test "$git_branch" = '(detached)'; and set git_branch :(string replace -rf '^# branch\.oid (.{7}).*' '$1' -- $git_status)
-  test -z "$git_branch"; and return
-  set git_branch (string replace -ar '(\.?[^/]{1})[^/]*/' '$1/' $git_branch)
+  set -l git_branch
   set -l dirty
-  string match -qv '#*' -- $git_status; and set dirty '*'
-  set -l ab (string match -r '^# branch\.ab \+(\d+) -(\d+)' -- $git_status)
   set -l remotes
-  test -n "$ab[2]" -a "$ab[2]" != 0; and set -a remotes $orange'+'$ab[2]
-  test -n "$ab[3]" -a "$ab[3]" != 0; and set -a remotes $orange'-'$ab[3]
-  set -q remotes[1]; and set remotes $red'!' $remotes
-  echo -n -s $gray '‹' $yellow $git_branch $red $dirty $remotes $gray '› '
+  if test "$theme_display_git_dirty" = no
+    set git_branch (_git_branch_name)
+  else
+    set -l git_status (command git status --porcelain=v2 --branch --ignore-submodules=dirty 2> /dev/null)
+    set git_branch (string replace -rf '^# branch\.head ' '' -- $git_status)
+    test "$git_branch" = '(detached)'; and set git_branch :(string replace -rf '^# branch\.oid (.{7}).*' '$1' -- $git_status)
+    string match -qv '#*' -- $git_status; and set dirty '*'
+    set -l ab (string match -r '^# branch\.ab \+(\d+) -(\d+)' -- $git_status)
+    test -n "$ab[2]" -a "$ab[2]" != 0; and set -a remotes $orange'+'$ab[2]
+    test -n "$ab[3]" -a "$ab[3]" != 0; and set -a remotes $orange'-'$ab[3]
+    set -q remotes[1]; and set remotes $red'!' $remotes
+  end
+  test -z "$git_branch"; and return
+  set -l operation (_scorphish_git_operation)
+  set -q operation[2]; and set git_branch $operation[2]
+  if not set -q operation[1]; and string match -q ':*' -- $git_branch
+    set -l tag (_scorphish_git_tag); and set git_branch $tag$git_branch
+  end
+  set -q operation[1]; and set operation $gray'|'$red$operation[1]
+  set git_branch (string replace -ar '(\.?[^/]{1})[^/]*/' '$1/' $git_branch)
+  echo -n -s $gray '‹' $yellow $git_branch $operation $red $dirty $remotes $gray '› '
 end
 
 function _prompt_pwd -a color
